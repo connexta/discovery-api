@@ -25,11 +25,15 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <name>Discovery Rest-Assured Client</name>
+    <name>Discovery JaxRS CXF Client</name>
 
     <groupId>com.connexta.discovery</groupId>
-    <artifactId>discovery-api-rest-assured-client</artifactId>
+    <artifactId>discovery-api-cxf-client</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <cxf.version>3.3.1</cxf.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -48,35 +52,38 @@
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.gsonfire</groupId>
-            <artifactId>gson-fire</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.swagger</groupId>
-            <artifactId>swagger-annotations</artifactId>
+            <artifactId>swagger-jaxrs</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.squareup.okio</groupId>
-            <artifactId>okio</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-service-description</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-ws-policy</artifactId>
+            <version>${cxf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-wsdl</artifactId>
+            <version>${cxf.version}</version>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
@@ -110,19 +117,17 @@
                         <configuration>
                             <inputSpec>${project.build.directory}/openapi/openapi.yaml
                             </inputSpec>
-                            <generatorName>java</generatorName>
+                            <generatorName>jaxrs-cxf-client</generatorName>
                             <configOptions>
-                                <library>rest-assured</library>
                                 <java8>true</java8>
                                 <dateLibrary>java8</dateLibrary>
                                 <booleanGetterPrefix>is</booleanGetterPrefix>
                                 <useBeanValidation>true</useBeanValidation>
-                                <performBeanValidation>true</performBeanValidation>
                                 <sourceFolder>src/main/java</sourceFolder>
                             </configOptions>
                             <modelPackage>${rest.models.package}</modelPackage>
-                            <apiPackage>${rest.package}.restassured</apiPackage>
-                            <invokerPackage>${rest.package}.restassured.invoker</invokerPackage>
+                            <apiPackage>${rest.package}.cxf.client</apiPackage>
+                            <invokerPackage>${rest.package}.cxf.client.invoker</invokerPackage>
                             <generateApis>true</generateApis>
                             <generateApiDocumentation>true</generateApiDocumentation>
                             <generateApiTests>false</generateApiTests>
@@ -130,9 +135,9 @@
                             <generateModelDocumentation>true</generateModelDocumentation>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>true</generateSupportingFiles>
-                            <supportingFilesToGenerate>
-                                ApiClient.java,JSON.java,GsonObjectMapper.java
-                            </supportingFilesToGenerate>
+                            <!--                            <supportingFilesToGenerate>-->
+                            <!--                                ApiClient.java,JSON.java,GsonObjectMapper.java-->
+                            <!--                            </supportingFilesToGenerate>-->
                         </configuration>
                     </execution>
                 </executions>

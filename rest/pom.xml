@@ -32,6 +32,12 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <properties>
+        <rest.server.url>https://ion.dod.mil/heartbeat</rest.server.url>
+        <rest.package>${root.package}.rest</rest.package>
+        <rest.models.package>${root.package}.rest.models</rest.models.package>
+    </properties>
+
     <modules>
         <module>specs</module>
         <module>docs</module>

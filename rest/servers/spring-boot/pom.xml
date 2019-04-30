@@ -25,10 +25,10 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <name>Discovery Rest Spring Boot Server Stubs</name>
+    <name>Discovery Rest SpringBoot Server Stubs</name>
 
     <groupId>com.connexta.discovery</groupId>
-    <artifactId>discovery-api-rest-spring-boot-server</artifactId>
+    <artifactId>discovery-api-rest-springboot-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <dependencies>
@@ -124,12 +124,14 @@
                                 <booleanGetterPrefix>is</booleanGetterPrefix>
                                 <useBeanValidation>true</useBeanValidation>
                                 <performBeanValidation>true</performBeanValidation>
+                                <sourceFolder>src/main/java</sourceFolder>
                             </configOptions>
-                            <apiPackage>${root.package}.stub</apiPackage>
+                            <modelPackage>${rest.models.package}</modelPackage>
+                            <apiPackage>${rest.package}.springboot</apiPackage>
+                            <invokerPackage>${rest.package}.springboot.invoker</invokerPackage>
                             <generateApis>true</generateApis>
                             <generateApiDocumentation>true</generateApiDocumentation>
                             <generateApiTests>false</generateApiTests>
-                            <modelPackage>${root.package}.model</modelPackage>
                             <generateModels>true</generateModels>
                             <generateModelDocumentation>true</generateModelDocumentation>
                             <generateModelTests>false</generateModelTests>

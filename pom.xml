@@ -38,7 +38,6 @@
     <packaging>pom</packaging>
 
     <properties>
-        <api.server.url>https://ion.dod.mil/heartbeat</api.server.url>
         <root.package>com.connexta.discovery</root.package>
 
         <!--  Default URL properties -->
@@ -64,7 +63,7 @@
         <annotation.api.version>1.3.2</annotation.api.version>
         <validation.api.version>2.0.1.Final</validation.api.version>
         <swagger.v3.version>2.0.8</swagger.v3.version>
-        <swagger.annotations.version>1.5.21</swagger.annotations.version>
+        <swagger.version>1.5.22</swagger.version>
         <springfox.version>2.9.2</springfox.version>
         <jackson.databind.nullable.version>0.1.0</jackson.databind.nullable.version>
         <hibernate.validator.version>6.0.12.Final</hibernate.validator.version>
@@ -202,6 +201,11 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.openapitools</groupId>
                 <artifactId>jackson-databind-nullable</artifactId>
                 <version>${jackson.databind.nullable.version}</version>
@@ -217,14 +221,19 @@
                 <version>${swagger.v3.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
-                <version>${springfox.version}</version>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-jaxrs</artifactId>
+                <version>${swagger.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>${swagger.annotations.version}</version>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-swagger2</artifactId>
+                <version>${springfox.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>

@@ -26,7 +26,7 @@ info:
     url: 'http://www.gnu.org/licenses/lgpl.html'
 
 servers:
-  - url: ${api.server.url}
+  - url: ${rest.server.url}
 
 paths:
   /heartbeat:
@@ -220,7 +220,7 @@ components:
       required: true
       schema:
         type: string
-      example: ${api.server.url}/xyz
+      example: ${rest.server.url}/xyz
 
   schemas:
     Version:
