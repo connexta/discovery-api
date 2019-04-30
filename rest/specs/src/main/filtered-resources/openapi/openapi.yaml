@@ -45,69 +45,16 @@ paths:
       tags:
         - discovery
       requestBody:
-        description: >
-          Remote system presence information.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/System'
+        $ref: '#/components/requestBodies/Heartbeat'
       responses:
-        '200':
-          description: >
-            The system's information was accepted. The only time a 200 response will be returned is
-            when echoing was requested by the client via the *Echo* request header.
-          headers:
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - echo.request
-                properties:
-                  echo.request:
-                    $ref: '#/components/schemas/System'
         '204':
-          description: The system's information was accepted.
-          headers:
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-        '307': # Temporary Redirect
-          description: >
-            The heartbeat resource has temporarly moved to the specified location and the remote
-            system should re-issue the message right away to the specified location. All subsequent
-            heartbeat notifications should be sent to the original location.
-          headers:
-            'Location':
-              $ref: '#/components/headers/Location'
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  echo.request:
-                    $ref: '#/components/schemas/System'
-        '308': # Permanent Redirect
-          description: >
-            The heartbeat resource has permanently moved to the specified location and the remote
-            system should re-issue the message right away to the specified location. All subsequent
-            heartbeat notifications should be sent to the specified location.
-          headers:
-            'Location':
-              $ref: '#/components/headers/Location'
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  echo.request:
-                    $ref: '#/components/schemas/System'
+          $ref: '#/components/responses/NoContent'
+        '200':
+          $ref: '#/components/responses/OK'
+        '307':
+          $ref: '#/components/responses/TemporaryRedirect'
+        '308':
+          $ref: '#/components/responses/PermanentRedirect'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -118,6 +65,101 @@ paths:
           $ref: '#/components/responses/DefaultError'
 
 components:
+  requestBodies:
+    Heartbeat:
+      description: >
+        Remote system presence information.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/System'
+  responses:
+    NoContent:
+      description: The system's information was accepted.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+    OK:
+      description: >
+        The system's information was accepted. The only time a 200 response will be returned is
+        when echoing was requested by the client via the *Echo* request header.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseMessage'
+    TemporaryRedirect:
+      description: >
+        The heartbeat resource has temporarily moved to the specified location and the remote
+        system should re-issue the message right away to the specified location. All subsequent
+        heartbeat notifications should be sent to the original location.
+      headers:
+        'Location':
+          $ref: '#/components/headers/Location'
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseMessage'
+    PermanentRedirect:
+      description: >
+        The heartbeat resource has permanently moved to the specified location and the remote
+        system should re-issue the message right away to the specified location. All subsequent
+        heartbeat notifications should be sent to the specified location.
+      headers:
+        'Location':
+          $ref: '#/components/headers/Location'
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseMessage'
+    Unauthorized:
+      description: >
+        The client could not be authenticated.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    NotImplemented:
+      description: >
+        The requested API version is not supported and therefore not implemented.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    BadRequest:
+      description: >
+        The client message could not understood by the server due to invalid format or syntax.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    DefaultError:
+      description: >
+        Any other possible errors not currently known.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+
   parameters:
     AcceptVersion:
       in: header
@@ -125,8 +167,8 @@ components:
       description: >
         The API version used by the client to produce the REST message. The client will accept
         responses marked with any minor versions after this one. It does imply that all future
-        minor versions of the message are backward compatible with all previous minor versions
-        of the same message.
+        minor versions of the message are backward compatible with all previous minor versions of
+        the same message.
       required: true
       schema:
         $ref: '#/components/schemas/Version'
@@ -145,11 +187,11 @@ components:
       name: Echo
       description: >
         A boolean flag indicating that the server should echo back in the response under a
-        property named *echo.request*, the properties from the request it understood and used.
-        It should also include the default value of any optional properties not specified.
-        This should only be used during contract testing to ensure the right property names
-        are being specified and to ensure the proper default values are being used by the
-        server.
+        property named *echoed.parameters*, the parameters from the request it understood and used.
+        It should also include the default value of any optional parameters (and properties) not
+        specified. This should only be used during contract testing to ensure the right parameter
+        (and property) names are being specified and to ensure the proper default values are being
+        used by the server.
       required: false
       schema:
         type: boolean
@@ -180,48 +222,6 @@ components:
         type: string
       example: ${api.server.url}/xyz
 
-  responses:
-    Unauthorized:
-      description: >
-        The client could not be authenticated.
-      headers:
-        'Content-Version':
-          $ref: '#/components/headers/ContentVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseMessage'
-    NotImplemented:
-      description: >
-        The requested API version is not supported and therefore not implemented.
-      headers:
-        'Content-Version':
-          $ref: '#/components/headers/ContentVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseMessage'
-    BadRequest:
-      description: >
-        The client message could not understood by the server due to invalid format or syntax.
-      headers:
-        'Content-Version':
-          $ref: '#/components/headers/ContentVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseMessage'
-    DefaultError:
-      description: >
-        Any other possible errors not currently known.
-      headers:
-        'Content-Version':
-          $ref: '#/components/headers/ContentVersion'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseMessage'
-
   schemas:
     Version:
       description: Version number.
@@ -245,10 +245,9 @@ components:
           type: string
           description: >
             A system advertised identifier that is meant to uniquely identify the system. The
-            identifier is not guaranteed to be unique from Ion's perspective which might be
-            forced to use other properties to uniquely identify the system registering. This
-            identifier is typically generated differently based on the advertised product and/or
-            version.
+            identifier is not guaranteed to be unique from Ion's perspective which might be forced
+            to use other properties to uniquely identify the system registering. This identifier is
+            typically generated differently based on the advertised product and/or version.
           minLength: 1
           example: abcd-01234-xxxx
         name:
@@ -316,7 +315,15 @@ components:
           pattern: '^\/[^\s]*$'
           example: /services
     ResponseMessage:
-      description: Message information.
+      description: >
+        Response message which can optionally includes the echoed parameters that were understood
+        from the original request.
+      type: object
+      properties:
+        echoed.parameters:
+          $ref: '#/components/schemas/System'
+    ErrorMessage:
+      description: Error message information.
       type: object
       required:
         - message

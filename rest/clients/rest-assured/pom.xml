@@ -40,10 +40,6 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
         </dependency>
@@ -115,7 +111,6 @@
                             <inputSpec>${project.build.directory}/openapi/openapi.yaml
                             </inputSpec>
                             <generatorName>java</generatorName>
-                            <apiPackage>${root.package}.stub</apiPackage>
                             <configOptions>
                                 <library>rest-assured</library>
                                 <java8>true</java8>
@@ -124,6 +119,7 @@
                                 <useBeanValidation>true</useBeanValidation>
                                 <performBeanValidation>true</performBeanValidation>
                             </configOptions>
+                            <apiPackage>${root.package}.stub</apiPackage>
                             <generateApis>true</generateApis>
                             <generateApiDocumentation>true</generateApiDocumentation>
                             <generateApiTests>false</generateApiTests>
