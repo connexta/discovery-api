@@ -38,6 +38,7 @@
     <packaging>pom</packaging>
 
     <properties>
+        <api.server.url>https://ion.dod.mil/heartbeat</api.server.url>
         <root.package>com.connexta.discovery</root.package>
 
         <!--  Default URL properties -->

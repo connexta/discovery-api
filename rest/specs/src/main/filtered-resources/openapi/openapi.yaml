@@ -18,8 +18,7 @@ info:
   title: ${project.name}
   description: >
     The discovery API is defined to allow automatic registration of remote systems with Ion and
-    to provide periodic notifications (a.k.a. heartbeats) of the system's presence and
-    availability.
+    to provide periodic notifications (a.k.a. heartbeats) of the system's presence and availability.
   contact:
     name: Connexta
   license:
@@ -27,33 +26,88 @@ info:
     url: 'http://www.gnu.org/licenses/lgpl.html'
 
 servers:
-  - url: https://ion.cloud:1234
+  - url: ${api.server.url}
 
 paths:
-  /register:
+  /heartbeat:
     parameters:
       - $ref: '#/components/parameters/AcceptVersion'
       - $ref: '#/components/parameters/Echo'
     post:
-      summary: Register a remote system.
+      summary: Heartbeat notification from a remote system.
       description: >
-        Endpoint capable of registering remote systems.
+        Remote systems are expected to report their presence on a regular basis and whenever network
+        connectivity has been restored using this endpoint.
+
+        Clients may be redirected at the server's leasure. Typical succesful response would be 204
+        as no content would be returned.
+      operationId: heartbeat
       tags:
-        - external
-      operationId: register
+        - discovery
       requestBody:
-        $ref: '#/components/requestBodies/SystemPresence'
+        description: >
+          Remote system presence information.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/System'
       responses:
-        '308': # Permanent Redirect
+        '200':
           description: >
-            The system was registered or was already registered and the resource has permanently
-            moved to the specified location. The message should be re-issued to the specified
-            location.
+            The system's information was accepted. The only time a 200 response will be returned is
+            when echoing was requested by the client via the *Echo* request header.
           headers:
             'Content-Version':
               $ref: '#/components/headers/ContentVersion'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - echo.request
+                properties:
+                  echo.request:
+                    $ref: '#/components/schemas/System'
+        '204':
+          description: The system's information was accepted.
+          headers:
+            'Content-Version':
+              $ref: '#/components/headers/ContentVersion'
+        '307': # Temporary Redirect
+          description: >
+            The heartbeat resource has temporarly moved to the specified location and the remote
+            system should re-issue the message right away to the specified location. All subsequent
+            heartbeat notifications should be sent to the original location.
+          headers:
             'Location':
-              $ref: '#/components/headers/HeartbeatLocation'
+              $ref: '#/components/headers/Location'
+            'Content-Version':
+              $ref: '#/components/headers/ContentVersion'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  echo.request:
+                    $ref: '#/components/schemas/System'
+        '308': # Permanent Redirect
+          description: >
+            The heartbeat resource has permanently moved to the specified location and the remote
+            system should re-issue the message right away to the specified location. All subsequent
+            heartbeat notifications should be sent to the specified location.
+          headers:
+            'Location':
+              $ref: '#/components/headers/Location'
+            'Content-Version':
+              $ref: '#/components/headers/ContentVersion'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  echo.request:
+                    $ref: '#/components/schemas/System'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -62,41 +116,6 @@ paths:
           $ref: '#/components/responses/NotImplemented'
         default:
           $ref: '#/components/responses/DefaultError'
-  /heartbeat/{id}:
-    parameters:
-      - $ref: '#/components/parameters/AcceptVersion'
-      - name: id
-        in: path
-        description: Ion's unique identifier for the system reporting its presence.
-        required: true
-        schema:
-          $ref: '#/components/schemas/Identifier'
-    post:
-      summary: Heartbeat notification from a remote system.
-      description: >
-        Protected endpoint capable of periodically receiving a remote system presence. Clients will
-        be redirected to this endpoint after having first registered themselves via the `/register`
-        endpoint.
-      tags:
-        - internal
-      operationId: heartbeat
-      requestBody:
-        $ref: '#/components/requestBodies/SystemPresence'
-      responses:
-        '204':
-          description: The system's information was updated
-          headers:
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-        '307':
-          description: >
-            The system is unknown to Ion and should be registered. The message should simply be
-            re-issued to the specified location
-          headers:
-            'Content-Version':
-              $ref: '#/components/headers/ContentVersion'
-            'Location':
-              $ref: '#/components/headers/RegisterLocation'
 
 components:
   parameters:
@@ -153,30 +172,13 @@ components:
         dev:
           value: '1.2.0-SNAPSHOT'
           summary: A development version
-    HeartbeatLocation:
+    Location:
       description: >
-        The new permanent location where the system should report its presence.
+        The new location where the remote system should report its presence.
       required: true
       schema:
         type: string
-      example: https://ion.cloud/heartbeat/abc123df003
-    RegisterLocation:
-      description: >
-        The location where the system should re-register itself.
-      required: true
-      schema:
-        type: string
-      example: https://ion.cloud/register
-
-  requestBodies:
-    SystemPresence:
-      description: >
-        Remote system presence information.
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/System'
+      example: ${api.server.url}/xyz
 
   responses:
     Unauthorized:
@@ -221,22 +223,25 @@ components:
             $ref: '#/components/schemas/ResponseMessage'
 
   schemas:
-    Identifier:
-      description: Unique Ion identifier for a system.
-      type: string
-      format: uuid
     Version:
       description: Version number.
       type: string
       minLength: 3
       pattern: '^([1-9]([0-9]+)?)\.(0|([1-9]([0-9]+)?))(\.(0|([1-9]([0-9]+)?))(-.*)?)?$'
+      example: 1.2, 2.4.3, 0.2.5-SNAPSHOT
     System:
       description: Information about a system.
       type: object
       required:
-        - remoteId
+        - id
+        - name
+        - product
+        - version
+        - host
+        - port
+        - context
       properties:
-        remoteId:
+        id:
           type: string
           description: >
             A system advertised identifier that is meant to uniquely identify the system. The
@@ -246,6 +251,70 @@ components:
             version.
           minLength: 1
           example: abcd-01234-xxxx
+        name:
+          type: string
+          description: >
+            The name of the remote system (a.k.a. site name). This name will be displayed to an
+            administrator when showing the remote system.
+          minLength: 1
+          example: Acme Intelligence Node
+        organization:
+          type: string
+          description: >
+            The organization the remote system belongs to.
+          example: Acme Organization
+        contact:
+          type: string
+          description: >
+            The contact information for the remote system.
+          example: support@acme.org
+        product:
+          type: string
+          description: >
+            The type of product the remote system is. This will help Ion determine how to
+            communicate and what functionnalities are available.
+          minLength: 1
+          example: ddf, alliance
+        version:
+          type: string
+          description: >
+            The version of the product installed on the remote system. This  will help Ion
+            determine how to best communicate with the system.
+          minLength: 1
+          example: 4.6.9
+        protocol:
+          type: string
+          description: >
+            The protocol to use when communicating with the remote system.
+          enum:
+            - http
+            - https
+          default: https
+        host:
+          type: string
+          description: >
+            The hostname (or IP address) where the remote system can be reached. This should be an
+            externally accessible hostname.
+          minLength: 1
+          example: myhost.com
+        port:
+          type: integer
+          format: int32
+          description: >
+            The port number where the remote system can be reached. For DDF-based systems, this
+            would be the port number hosting the CSW and GraphQL endpoints.
+          minimum: 0
+          exclusiveMinimum: true
+          maximum: 49152
+          exclusiveMaximum: true
+          example: 8993
+        context:
+          type: string
+          description: >
+            The root context where the remote system can be reached.
+          minLength: 1
+          pattern: '^\/[^\s]*$'
+          example: /services
     ResponseMessage:
       description: Message information.
       type: object
