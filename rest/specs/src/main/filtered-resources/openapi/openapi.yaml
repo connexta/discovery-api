@@ -39,7 +39,7 @@ paths:
         Remote systems are expected to report their presence on a regular basis and whenever network
         connectivity has been restored using this endpoint.
 
-        Clients may be redirected at the server's leasure. Typical succesful response would be 204
+        Clients may be redirected at the server's leisure. Typical successful response would be 204
         as no content would be returned.
       operationId: heartbeat
       tags:
@@ -271,7 +271,7 @@ components:
           type: string
           description: >
             The type of product the remote system is. This will help Ion determine how to
-            communicate and what functionnalities are available.
+            communicate and what functionalities are available.
           minLength: 1
           example: ddf, alliance
         version:
