@@ -220,6 +220,7 @@ components:
       required: true
       schema:
         type: string
+        format: uri
       example: ${rest.server.url}/xyz
 
   schemas:
@@ -237,9 +238,7 @@ components:
         - name
         - product
         - version
-        - host
-        - port
-        - context
+        - url
       properties:
         id:
           type: string
@@ -273,47 +272,22 @@ components:
             The type of product the remote system is. This will help Ion determine how to
             communicate and what functionalities are available.
           minLength: 1
-          example: ddf, alliance
+          example: ddf, alliance, ...
         version:
           type: string
           description: >
-            The version of the product installed on the remote system. This  will help Ion
+            The version of the product installed on the remote system. This will help Ion
             determine how to best communicate with the system.
           minLength: 1
           example: 4.6.9
-        protocol:
+        url:
           type: string
+          format: uri
           description: >
-            The protocol to use when communicating with the remote system.
-          enum:
-            - http
-            - https
-          default: https
-        host:
-          type: string
-          description: >
-            The hostname (or IP address) where the remote system can be reached. This should be an
-            externally accessible hostname.
-          minLength: 1
-          example: myhost.com
-        port:
-          type: integer
-          format: int32
-          description: >
-            The port number where the remote system can be reached. For DDF-based systems, this
-            would be the port number hosting the CSW and GraphQL endpoints.
-          minimum: 0
-          exclusiveMinimum: true
-          maximum: 49152
-          exclusiveMaximum: true
-          example: 8993
-        context:
-          type: string
-          description: >
-            The root context where the remote system can be reached.
-          minLength: 1
-          pattern: '^\/[^\s]*$'
-          example: /services
+            An externally accessible url where the remote system is hosting REST services that can
+            can be reached. For DDF-based systems, this would be the base url for the CSW and
+            GraphQL endpoints.
+          example: https://myhost:8993/services
     ResponseMessage:
       description: >
         Response message which can optionally includes the echoed parameters that were understood
@@ -328,8 +302,19 @@ components:
       required:
         - message
       properties:
+        errorCode:
+          type: integer
+          format: int32
+          description: >
+            Specific error code for the error
         message:
           type: string
           description: >
-            Detailed information about the response or error.
+            Information about the error.
           minLength: 1
+        details:
+          type: array
+          items:
+            type: string
+          description: >
+            Optional detailed information about the error.
