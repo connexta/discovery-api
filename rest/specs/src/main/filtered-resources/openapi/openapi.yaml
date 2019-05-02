@@ -195,6 +195,7 @@ components:
       required: false
       schema:
         type: boolean
+        default: false
 
   headers:
     ContentVersion:
@@ -230,6 +231,24 @@ components:
       minLength: 3
       pattern: '^([1-9]([0-9]+)?)\.(0|([1-9]([0-9]+)?))(\.(0|([1-9]([0-9]+)?))(-.*)?)?$'
       example: 1.2, 2.4.3, 0.2.5-SNAPSHOT
+    Contact:
+      description: Contact information about a system.
+      type: object
+      required:
+        - email
+      properties:
+        name:
+          type: string
+          description: >
+            The name of the contact person.
+          minLength: 1
+          example: Bob Patterson
+        email:
+          type: string
+          format: email
+          description: >
+            The email address for the contact person.
+          example: bob.patterson@acme.org
     System:
       description: Information about a system.
       type: object
@@ -262,10 +281,7 @@ components:
             The organization the remote system belongs to.
           example: Acme Organization
         contact:
-          type: string
-          description: >
-            The contact information for the remote system.
-          example: support@acme.org
+          $ref: '#/components/schemas/Contact'
         product:
           type: string
           description: >
@@ -300,21 +316,30 @@ components:
       description: Error message information.
       type: object
       required:
+        - status
         - message
       properties:
-        errorCode:
+        status:
+          type: integer
+          format: int32
+          description: The corresponding HTTP status code.
+          example: 200
+        code:
           type: integer
           format: int32
           description: >
-            Specific error code for the error
+            An optional more specific code corresponding to the error (specific codes need to be
+            documented).
         message:
           type: string
-          description: >
-            Information about the error.
+          description: Information about the error.
           minLength: 1
         details:
           type: array
           items:
             type: string
-          description: >
-            Optional detailed information about the error.
+          description: Optional detailed information about the error.
+        path:
+          type: string
+          description: The path for the REST request that generated this error.
+          example: /heartbeat
