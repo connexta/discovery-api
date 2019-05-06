@@ -35,5 +35,6 @@
     <modules>
         <module>spring</module>
         <module>spring-boot</module>
+        <module>mock</module>
     </modules>
 </project>

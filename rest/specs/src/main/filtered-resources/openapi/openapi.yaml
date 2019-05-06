@@ -73,7 +73,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/System'
+            $ref: '#/components/schemas/SystemInfo'
   responses:
     NoContent:
       description: The system's information was accepted.
@@ -249,7 +249,7 @@ components:
           description: >
             The email address for the contact person.
           example: bob.patterson@acme.org
-    System:
+    SystemInfo:
       description: Information about a system.
       type: object
       required:
@@ -311,7 +311,7 @@ components:
       type: object
       properties:
         echoed.parameters:
-          $ref: '#/components/schemas/System'
+          $ref: '#/components/schemas/SystemInfo'
     ErrorMessage:
       description: Error message information.
       type: object

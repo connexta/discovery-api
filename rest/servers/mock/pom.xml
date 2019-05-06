@@ -21,27 +21,43 @@
 
     <parent>
         <groupId>com.connexta.discovery</groupId>
-        <artifactId>discovery-api</artifactId>
+        <artifactId>discovery-api-rest-servers</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <name>Discovery Rest API</name>
+    <name>Discovery Rest Spring Boot Mock Application</name>
 
     <groupId>com.connexta.discovery</groupId>
-    <artifactId>discovery-api-rest</artifactId>
+    <artifactId>discovery-api-rest-spring-boot-mock-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
-    <properties>
-        <rest.server.url>https://ion.dod.mil/heartbeat</rest.server.url>
-        <rest.package>${root.package}.rest</rest.package>
-        <rest.models.package>${root.package}.rest.models</rest.models.package>
-    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.connexta.discovery</groupId>
+            <artifactId>discovery-api-rest-spring-stubs</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
-    <modules>
-        <module>specs</module>
-        <module>docs</module>
-        <module>servers</module>
-        <module>clients</module>
-    </modules>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-bean-validators</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
