@@ -126,8 +126,15 @@ public class VersionInterceptor implements HandlerInterceptor {
       if (result) {
         continue;
       }
-      final Integer serverValue = Integer.parseInt(serverPart);
-      final Integer clientValue = Integer.parseInt(clientPart);
+      final Integer serverValue = Integer.parseInt(serverPart); // let parsing errors bubble out
+      final Integer clientValue;
+
+      try {
+        clientValue = Integer.parseInt(clientPart);
+      } catch (NumberFormatException e) { // if we get garbage than bail out
+        LOGGER.debug("failed to parse client version: {}", clientVersion, e);
+        return false;
+      }
       final int compare = serverValue.compareTo(clientValue);
 
       if (i == 0) {
