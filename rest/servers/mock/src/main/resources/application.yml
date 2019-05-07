@@ -37,3 +37,4 @@ management:
     enabled-by-default: true
 
 logging.level.root: INFO
+logging.level.com.connexta: DEBUG

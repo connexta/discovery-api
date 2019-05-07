@@ -11,9 +11,9 @@
  * License is distributed along with this program and can be found at
  * <http://www.gnu.org/licenses/lgpl.html>.
  */
-package com.connexta.discovery.rest.springboot.mock;
+package com.connexta.discovery.rest.springboot.mock.controller;
 
-import com.connexta.discovery.rest.models.Contact;
+import com.connexta.discovery.rest.models.ContactInfo;
 import com.connexta.discovery.rest.models.ResponseMessage;
 import com.connexta.discovery.rest.models.SystemInfo;
 import com.connexta.discovery.rest.spring.DiscoveryApi;
@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
 
+/** Dummy controller implementation to provide a simple test stub for the discovery API. */
 @RestController
 @CrossOrigin(origins = "*")
 public class DiscoveryController implements DiscoveryApi {
@@ -54,8 +55,6 @@ public class DiscoveryController implements DiscoveryApi {
     LOGGER.info("Heartbeat: {}", system);
     SystemInfo echoedSystem = null;
     final HttpHeaders headers = new HttpHeaders();
-
-    headers.add("Content-Version", "1.2.3-SNAPSHOT");
     HttpStatus status = HttpStatus.NO_CONTENT;
 
     if (echo.orElse(false)) {
@@ -66,7 +65,7 @@ public class DiscoveryController implements DiscoveryApi {
               .name(system.getName())
               .organization(system.getOrganization())
               .contact(
-                  new Contact()
+                  new ContactInfo()
                       .email(system.getContact().getEmail())
                       .name(system.getContact().getName()))
               .product(system.getProduct())

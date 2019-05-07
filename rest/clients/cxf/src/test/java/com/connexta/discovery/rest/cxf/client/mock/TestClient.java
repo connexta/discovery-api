@@ -14,11 +14,12 @@
 package com.connexta.discovery.rest.cxf.client.mock;
 
 import com.connexta.discovery.rest.cxf.client.DiscoveryApi;
-import com.connexta.discovery.rest.models.Contact;
+import com.connexta.discovery.rest.models.ContactInfo;
 import com.connexta.discovery.rest.models.ErrorMessage;
 import com.connexta.discovery.rest.models.ResponseMessage;
 import com.connexta.discovery.rest.models.SystemInfo;
 import com.connexta.discovery.rest.springboot.mock.Application;
+import com.connexta.spring.interceptor.VersionInterceptor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
@@ -28,23 +29,29 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.RedirectionException;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+import org.codice.junit.MethodRuleAnnotationRunner;
+import org.codice.junit.TestDelimiter;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.embedded.tomcat.ConnectorStartFailedException;
 import org.springframework.context.ConfigurableApplicationContext;
 
+@TestDelimiter
+@RunWith(MethodRuleAnnotationRunner.class)
 public class TestClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestClient.class);
-  private static final String CLIENT_VERSION = "1.2";
+  private static final String CLIENT_VERSION = VersionInterceptor.getVersion(DiscoveryApi.class);
 
   private static int port = -1;
   private static ConfigurableApplicationContext context = null;
@@ -82,7 +89,7 @@ public class TestClient {
           .id("my.id")
           .name("my system")
           .organization("my organization")
-          .contact(new Contact().email("myemail@myorg.com").name("my name"))
+          .contact(new ContactInfo().email("myemail@myorg.com").name("my name"))
           .product("my product")
           .version("my version")
           .url("my url");
@@ -139,6 +146,25 @@ public class TestClient {
       final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
 
       Assert.assertThat(msg.getStatus(), Matchers.equalTo(400));
+      Assert.assertThat(msg.getCode(), Matchers.nullValue());
+      Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
+      Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
+      throw e;
+    }
+  }
+
+  @Test(expected = ServerErrorException.class)
+  public void testNotImplementedVersionHeartbeat() throws Exception {
+    try {
+      api.heartbeat("9999999.23", system, false);
+    } catch (ServerErrorException e) {
+      final Response resp = e.getResponse();
+
+      Assert.assertThat(resp.getStatus(), Matchers.equalTo(501));
+      Assert.assertTrue(resp.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE));
+      final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
+
+      Assert.assertThat(msg.getStatus(), Matchers.equalTo(501));
       Assert.assertThat(msg.getCode(), Matchers.nullValue());
       Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
       Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
