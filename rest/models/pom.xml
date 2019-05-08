@@ -125,7 +125,6 @@
                                 <sourceFolder>src/main/java</sourceFolder>
                             </configOptions>
                             <modelPackage>${rest.models.package}</modelPackage>
-                            <apiPackage>${rest.package}.spring</apiPackage>
                             <generateApis>false</generateApis>
                             <generateApiTests>false</generateApiTests>
                             <generateModels>true</generateModels>

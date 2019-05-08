@@ -63,31 +63,33 @@ public class VersionInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws IOException {
-    final HandlerMethod handlerMethod = (HandlerMethod) handler;
-    final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
-    final String clientVersion = request.getHeader(VersionInterceptor.ACCEPT_VERSION);
+    if (handler instanceof HandlerMethod) {
+      final HandlerMethod handlerMethod = (HandlerMethod) handler;
+      final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
+      final String clientVersion = request.getHeader(VersionInterceptor.ACCEPT_VERSION);
 
-    LOGGER.debug(
-        "VersionInterceptor.preHandle(handler: {}, server: {}, client: {}",
-        handlerMethod.getShortLogMessage(),
-        serverVersion,
-        clientVersion);
-    if ((serverVersion != null)
-        && !VersionInterceptor.areCompatible(serverVersion, clientVersion)) {
-      response.setContentType(MediaType.APPLICATION_JSON_UTF8.toString());
-      response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
-      response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-      response
-          .getWriter()
-          .write(
-              new ObjectMapper()
-                  .writeValueAsString(
-                      new ErrorMessage()
-                          .status(HttpServletResponse.SC_NOT_IMPLEMENTED)
-                          .message("Unsupported version: " + clientVersion)
-                          .addDetailsItem("server version: " + serverVersion)
-                          .path(request.getServletPath())));
-      return false;
+      LOGGER.debug(
+          "VersionInterceptor.preHandle(handler: {}, server: {}, client: {}",
+          handlerMethod.getShortLogMessage(),
+          serverVersion,
+          clientVersion);
+      if ((serverVersion != null)
+          && !VersionInterceptor.areCompatible(serverVersion, clientVersion)) {
+        response.setContentType(MediaType.APPLICATION_JSON_UTF8.toString());
+        response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
+        response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+        response
+            .getWriter()
+            .write(
+                new ObjectMapper()
+                    .writeValueAsString(
+                        new ErrorMessage()
+                            .status(HttpServletResponse.SC_NOT_IMPLEMENTED)
+                            .message("Unsupported version: " + clientVersion)
+                            .addDetailsItem("server version: " + serverVersion)
+                            .path(request.getServletPath())));
+        return false;
+      }
     }
     return true;
   }
@@ -98,15 +100,17 @@ public class VersionInterceptor implements HandlerInterceptor {
       HttpServletResponse response,
       Object handler,
       ModelAndView modelAndView) {
-    final HandlerMethod handlerMethod = (HandlerMethod) handler;
-    final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
+    if (handler instanceof HandlerMethod) {
+      final HandlerMethod handlerMethod = (HandlerMethod) handler;
+      final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
 
-    LOGGER.debug(
-        "VersionInterceptor.postHandle(handler: {}, server: {}",
-        handlerMethod.getShortLogMessage(),
-        serverVersion);
-    if (serverVersion != null) {
-      response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
+      LOGGER.debug(
+          "VersionInterceptor.postHandle(handler: {}, server: {}",
+          handlerMethod.getShortLogMessage(),
+          serverVersion);
+      if (serverVersion != null) {
+        response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
+      }
     }
   }
 

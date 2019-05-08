@@ -133,7 +133,7 @@
                             <apiPackage>${rest.package}.restassured</apiPackage>
                             <invokerPackage>${rest.package}.restassured.invoker</invokerPackage>
                             <generateApis>true</generateApis>
-                            <generateApiDocumentation>true</generateApiDocumentation>
+                            <generateApiDocumentation>false</generateApiDocumentation>
                             <generateApiTests>false</generateApiTests>
                             <generateModels>false</generateModels>
                             <generateModelTests>false</generateModelTests>
