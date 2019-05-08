@@ -13,8 +13,6 @@
  */
 package com.connexta.spring.interceptor;
 
-import com.connexta.discovery.rest.models.ErrorMessage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -32,7 +30,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ProxyInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -40,12 +37,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Spring interceptor capable of validating the version provided by the client with the version
- * implemented by the server and return an error message accordingly. It will also automatically add
- * the <code>Content-Version</code> header with the server version for the API called. This only
- * happens in cases where the controller was called and generated a response and no other
- * interceptors failed.
+ * implemented by the server and throws a {@link UnsupportedVersionException} exception if the
+ * client version is not supported. It will also automatically add the <code>Content-Version</code>
+ * header with the server version for the API called. This only happens in cases where the
+ * controller was called and generated a response and no other interceptors failed.
  *
- * <p>The server version for the API is retrieved from the dependency.proeprties file that must be
+ * <p>The server version for the API is retrieved from the dependency.properties file that must be
  * included in the generated spring API using Apache's ServiceMix depends maven plugin.
  */
 @Component
@@ -61,8 +58,8 @@ public class VersionInterceptor implements HandlerInterceptor {
   private static final Map<Method, String> versions = new ConcurrentHashMap<>();
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-      throws IOException {
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
     if (handler instanceof HandlerMethod) {
       final HandlerMethod handlerMethod = (HandlerMethod) handler;
       final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
@@ -75,20 +72,7 @@ public class VersionInterceptor implements HandlerInterceptor {
           clientVersion);
       if ((serverVersion != null)
           && !VersionInterceptor.areCompatible(serverVersion, clientVersion)) {
-        response.setContentType(MediaType.APPLICATION_JSON_UTF8.toString());
-        response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
-        response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-        response
-            .getWriter()
-            .write(
-                new ObjectMapper()
-                    .writeValueAsString(
-                        new ErrorMessage()
-                            .status(HttpServletResponse.SC_NOT_IMPLEMENTED)
-                            .message("Unsupported version: " + clientVersion)
-                            .addDetailsItem("server version: " + serverVersion)
-                            .path(request.getServletPath())));
-        return false;
+        throw new UnsupportedVersionException(clientVersion, serverVersion);
       }
     }
     return true;
@@ -141,11 +125,9 @@ public class VersionInterceptor implements HandlerInterceptor {
       }
       final int compare = serverValue.compareTo(clientValue);
 
-      if (i == 0) {
-        if (compare == 0) {
-          result = false;
-        }
-      } else {
+      if (i == 0) { // major must be equal
+        result = compare == 0;
+      } else { // server minor must be greater or equal than client
         result = compare >= 0;
       }
     }
