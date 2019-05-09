@@ -13,27 +13,44 @@
  */
 package com.connexta.spring.interceptor;
 
+import com.connexta.spring.error.DetailedResponseStatusException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown by the {@link VersionInterceptor} when the server is unable to accept a message
  * from a client because the client is using an older version of the API.
  */
-public class UnsupportedVersionException extends ResponseStatusException {
+public class UnsupportedVersionException extends DetailedResponseStatusException {
   private final String clientVersion;
   private final String serverVersion;
 
   /**
    * Creates a new exception.
    *
+   * @param code a specific code for the error
+   * @param clientVersion the version advertised by the client
+   * @param serverVersion the version of the API supported by the server
+   * @param cause the cause for this exception
+   */
+  public UnsupportedVersionException(
+      int code, String clientVersion, String serverVersion, @Nullable Throwable cause) {
+    super(HttpStatus.NOT_IMPLEMENTED, code, "Unsupported version: " + clientVersion, cause);
+    this.clientVersion = clientVersion;
+    this.serverVersion = serverVersion;
+    addDetail("client version: " + clientVersion);
+    addDetail("server version: " + serverVersion);
+  }
+
+  /**
+   * Creates a new exception.
+   *
+   * @param code a specific code for the error
    * @param clientVersion the version advertised by the client
    * @param serverVersion the version of the API supported by the server
    */
-  public UnsupportedVersionException(String clientVersion, String serverVersion) {
-    super(HttpStatus.NOT_IMPLEMENTED, "Unsupported version: " + clientVersion);
-    this.clientVersion = clientVersion;
-    this.serverVersion = serverVersion;
+  public UnsupportedVersionException(int code, String clientVersion, String serverVersion) {
+    this(code, clientVersion, serverVersion, null);
   }
 
   public String getClientVersion() {

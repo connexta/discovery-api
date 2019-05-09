@@ -14,6 +14,8 @@
 package com.connexta.discovery.rest.springboot.mock.config;
 
 import com.connexta.spring.interceptor.VersionInterceptor;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -30,5 +32,11 @@ public class ApplicationConfig implements WebMvcConfigurer {
   @Bean
   public VersionInterceptor versionInterceptor() {
     return new VersionInterceptor();
+  }
+
+  @Bean
+  public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+    // enables support for 'date-time' json format
+    return b -> b.dateFormat(new StdDateFormat());
   }
 }

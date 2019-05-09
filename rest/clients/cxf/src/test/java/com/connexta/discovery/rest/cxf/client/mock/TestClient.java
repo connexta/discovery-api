@@ -52,9 +52,18 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class TestClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(TestClient.class);
   private static final String CLIENT_VERSION = VersionInterceptor.getVersion(DiscoveryApi.class);
+  private static final int MAJOR_VERSION;
+  private static final int MINOR_VERSION;
 
   private static int port = -1;
   private static ConfigurableApplicationContext context = null;
+
+  static {
+    final String[] parts = TestClient.CLIENT_VERSION.split("\\.");
+
+    MAJOR_VERSION = Integer.parseInt(parts[0]);
+    MINOR_VERSION = Integer.parseInt(parts[1]);
+  }
 
   @BeforeClass
   public static void setupClass() throws Exception {
@@ -107,6 +116,7 @@ public class TestClient {
     }
     final ObjectMapper objectMapper = new ObjectMapper();
 
+    objectMapper.findAndRegisterModules();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     this.api =
         JAXRSClientFactory.create(
@@ -154,9 +164,9 @@ public class TestClient {
   }
 
   @Test(expected = ServerErrorException.class)
-  public void testNotImplementedVersionHeartbeat() throws Exception {
+  public void testTooOldMajorClientVersionHeartbeat() throws Exception {
     try {
-      api.heartbeat("9999999.23", system, false);
+      api.heartbeat((TestClient.MAJOR_VERSION - 1) + "." + TestClient.MINOR_VERSION, system, false);
     } catch (ServerErrorException e) {
       final Response resp = e.getResponse();
 
@@ -165,7 +175,64 @@ public class TestClient {
       final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
 
       Assert.assertThat(msg.getStatus(), Matchers.equalTo(501));
-      Assert.assertThat(msg.getCode(), Matchers.nullValue());
+      Assert.assertThat(msg.getCode(), Matchers.equalTo(501002));
+      Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
+      Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
+      throw e;
+    }
+  }
+
+  @Test(expected = ServerErrorException.class)
+  public void testTooRecentMajorClientVersionHeartbeat() throws Exception {
+    try {
+      api.heartbeat((TestClient.MAJOR_VERSION + 1) + "." + TestClient.MINOR_VERSION, system, false);
+    } catch (ServerErrorException e) {
+      final Response resp = e.getResponse();
+
+      Assert.assertThat(resp.getStatus(), Matchers.equalTo(501));
+      Assert.assertTrue(resp.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE));
+      final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
+
+      Assert.assertThat(msg.getStatus(), Matchers.equalTo(501));
+      Assert.assertThat(msg.getCode(), Matchers.equalTo(501003));
+      Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
+      Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
+      throw e;
+    }
+  }
+
+  @Test(expected = ServerErrorException.class)
+  public void testTooRecentMinorClientVersionHeartbeat() throws Exception {
+    try {
+      api.heartbeat(TestClient.MAJOR_VERSION + "." + (TestClient.MINOR_VERSION + 1), system, false);
+    } catch (ServerErrorException e) {
+      final Response resp = e.getResponse();
+
+      Assert.assertThat(resp.getStatus(), Matchers.equalTo(501));
+      Assert.assertTrue(resp.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE));
+      final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
+
+      Assert.assertThat(msg.getStatus(), Matchers.equalTo(501));
+      Assert.assertThat(msg.getCode(), Matchers.equalTo(501004));
+      Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
+      Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
+      throw e;
+    }
+  }
+
+  @Test(expected = ServerErrorException.class)
+  public void testUnparseableClientVersionHeartbeat() throws Exception {
+    try {
+      api.heartbeat("a.23", system, false);
+    } catch (ServerErrorException e) {
+      final Response resp = e.getResponse();
+
+      Assert.assertThat(resp.getStatus(), Matchers.equalTo(501));
+      Assert.assertTrue(resp.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE));
+      final ErrorMessage msg = resp.readEntity(ErrorMessage.class);
+
+      Assert.assertThat(msg.getStatus(), Matchers.equalTo(501));
+      Assert.assertThat(msg.getCode(), Matchers.equalTo(501001));
       Assert.assertThat(msg.getMessage(), Matchers.not(Matchers.isEmptyOrNullString()));
       Assert.assertThat(msg.getPath(), Matchers.equalTo("/heartbeat"));
       throw e;

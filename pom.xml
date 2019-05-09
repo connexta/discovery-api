@@ -34,7 +34,7 @@
 
     <groupId>com.connexta.discovery</groupId>
     <artifactId>discovery-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -334,10 +334,18 @@
     </dependencyManagement>
 
     <profiles>
+        <!--
+        These 2 profiles are place holders and should not be copied over to new repos
+        since all our APIs should use Java 11.
+        They are used here because the initial release of the Discovery API will be JDK 8
+        for use by existing systems.
+        Make sure you simply copy the content of the Java 11 profile to the parent pom directly.
+        And also make sure to update the JenkinsFile to use Java 11.
+        -->
         <profile>
             <id>Java 11 Profile</id>
             <activation>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <build>
                 <pluginManagement>
@@ -380,7 +388,8 @@
         <profile>
             <id>Java 8 Profile</id>
             <activation>
-                <jdk>8</jdk>
+                <jdk>[8,11)</jdk>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <build>
                 <pluginManagement>

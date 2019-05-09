@@ -42,6 +42,11 @@ public class DiscoveryController implements DiscoveryApi {
   @Resource private NativeWebRequest request;
 
   @Override
+  public Optional<NativeWebRequest> getRequest() {
+    return Optional.of(request);
+  }
+
+  @Override
   public ResponseEntity<ResponseMessage> heartbeat(
       String acceptVersion, @Valid SystemInfo system, Optional<Boolean> echo) {
     LOGGER.info("Context Path: {}", request.getContextPath());

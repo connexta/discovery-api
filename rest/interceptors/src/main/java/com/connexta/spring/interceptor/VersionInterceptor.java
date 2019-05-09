@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Spring interceptor capable of validating the version provided by the client with the version
@@ -52,10 +51,15 @@ public class VersionInterceptor implements HandlerInterceptor {
   private static final String ACCEPT_VERSION = "Accept-Version";
   private static final String CONTENT_VERSION = "Content-Version";
 
-  public static final String DEPENDENCIES_FILE = "META-INF/maven/dependencies.properties";
-  public static final String VERSION = "version";
+  private static final String DEPENDENCIES_FILE = "META-INF/maven/dependencies.properties";
+  private static final String VERSION = "version";
 
-  private static final Map<Method, String> versions = new ConcurrentHashMap<>();
+  private static final int CLIENT_VERSION_PARSING_ERROR = 501001;
+  private static final int MAJOR_VERSION_TOO_OLD = 501002;
+  private static final int MAJOR_VERSION_TOO_RECENT = 501003;
+  private static final int MINOR_VERSION_TOO_RECENT = 501004;
+
+  private static final Map<Method, String> VERSIONS = new ConcurrentHashMap<>();
 
   @Override
   public boolean preHandle(
@@ -70,48 +74,26 @@ public class VersionInterceptor implements HandlerInterceptor {
           handlerMethod.getShortLogMessage(),
           serverVersion,
           clientVersion);
-      if ((serverVersion != null)
-          && !VersionInterceptor.areCompatible(serverVersion, clientVersion)) {
-        throw new UnsupportedVersionException(clientVersion, serverVersion);
+      if (serverVersion != null) {
+        response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
+        VersionInterceptor.verifyCompatibility(serverVersion, clientVersion);
       }
     }
     return true;
   }
 
-  @Override
-  public void postHandle(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Object handler,
-      ModelAndView modelAndView) {
-    if (handler instanceof HandlerMethod) {
-      final HandlerMethod handlerMethod = (HandlerMethod) handler;
-      final String serverVersion = VersionInterceptor.getVersion(handlerMethod.getMethod());
-
-      LOGGER.debug(
-          "VersionInterceptor.postHandle(handler: {}, server: {}",
-          handlerMethod.getShortLogMessage(),
-          serverVersion);
-      if (serverVersion != null) {
-        response.addHeader(VersionInterceptor.CONTENT_VERSION, serverVersion);
-      }
-    }
-  }
-
-  private static boolean areCompatible(String serverVersion, String clientVersion) {
+  private static void verifyCompatibility(String serverVersion, String clientVersion) {
     if (serverVersion.equals(clientVersion)) {
-      return true;
+      return;
     }
     final String[] serverParts = serverVersion.split("\\.");
     final String[] clientParts = clientVersion.split("\\.");
-    boolean result = true;
 
-    for (int i = 0; result && (i < 2); i++) {
+    for (int i = 0; i < 2; i++) {
       final String serverPart = (serverParts.length > i) ? serverParts[i].trim() : "0";
       final String clientPart = (clientParts.length > i) ? clientParts[i].trim() : "0";
 
-      result = serverPart.equals(clientPart);
-      if (result) {
+      if (serverPart.equals(clientPart)) {
         continue;
       }
       final Integer serverValue = Integer.parseInt(serverPart); // let parsing errors bubble out
@@ -121,17 +103,26 @@ public class VersionInterceptor implements HandlerInterceptor {
         clientValue = Integer.parseInt(clientPart);
       } catch (NumberFormatException e) { // if we get garbage than bail out
         LOGGER.debug("failed to parse client version: {}", clientVersion, e);
-        return false;
+        throw new UnsupportedVersionException(
+            VersionInterceptor.CLIENT_VERSION_PARSING_ERROR, clientVersion, serverVersion, e);
       }
       final int compare = serverValue.compareTo(clientValue);
 
       if (i == 0) { // major must be equal
-        result = compare == 0;
+        if (compare > 0) {
+          throw new UnsupportedVersionException(
+              VersionInterceptor.MAJOR_VERSION_TOO_OLD, clientVersion, serverVersion);
+        } else if (compare < 0) {
+          throw new UnsupportedVersionException(
+              VersionInterceptor.MAJOR_VERSION_TOO_RECENT, clientVersion, serverVersion);
+        }
       } else { // server minor must be greater or equal than client
-        result = compare >= 0;
+        if (compare < 0) {
+          throw new UnsupportedVersionException(
+              VersionInterceptor.MINOR_VERSION_TOO_RECENT, clientVersion, serverVersion);
+        }
       }
     }
-    return result;
   }
 
   /**
@@ -149,7 +140,7 @@ public class VersionInterceptor implements HandlerInterceptor {
 
   @Nullable
   private static String getVersion(Method method) {
-    return VersionInterceptor.versions.computeIfAbsent(
+    return VersionInterceptor.VERSIONS.computeIfAbsent(
         method,
         m ->
             VersionInterceptor.getVersion(

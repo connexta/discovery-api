@@ -13,11 +13,14 @@
  */
 package com.connexta.discovery.rest.springboot.mock;
 
+import com.connexta.spring.error.DetailedErrorAttributes;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
 /** Spring Boot application for the simple test stub that can be used to test the discovery API. */
 @SpringBootApplication
+@ComponentScan(basePackageClasses = {Application.class, DetailedErrorAttributes.class})
 public class Application {
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);

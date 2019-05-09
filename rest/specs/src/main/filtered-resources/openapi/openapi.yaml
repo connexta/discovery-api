@@ -132,6 +132,15 @@ components:
     NotImplemented:
       description: >
         The requested API version is not supported and therefore not implemented.
+        Possible codes reported are:
+
+        - 501001 - Unable to parse *Accept-Version*
+
+        - 501002 - The provided major version is no longer supported
+
+        - 501003 - The provided major version is not yet supported by the server
+
+        - 501004 - The provided minor version is not yet supported by the server
       headers:
         'Content-Version':
           $ref: '#/components/headers/ContentVersion'
@@ -141,7 +150,7 @@ components:
             $ref: '#/components/schemas/ErrorMessage'
     BadRequest:
       description: >
-        The client message could not understood by the server due to invalid format or syntax.
+        The client message could not be understood by the server due to invalid format or syntax.
       headers:
         'Content-Version':
           $ref: '#/components/headers/ContentVersion'
@@ -306,40 +315,57 @@ components:
           example: https://myhost:8993/services
     ResponseMessage:
       description: >
-        Response message which can optionally includes the echoed parameters that were understood
+        Response message which can optionally include the echoed parameters that were understood
         from the original request.
       type: object
       properties:
         echoed.parameters:
           $ref: '#/components/schemas/SystemInfo'
     ErrorMessage:
-      description: Error message information.
+      description: Error message information (based on default Spring error message).
       type: object
       required:
+        - timestamp
+        - path
         - status
+        - error
         - message
       properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: The server time when the error was generated.
+          example: 2019-05-09T14:47:13.101+0000
+        path:
+          type: string
+          description: The path for the REST endpoint that generated this error.
+          example: /heartbeat
         status:
           type: integer
           format: int32
           description: The corresponding HTTP status code.
-          example: 200
+          minimum: 100
+          maximum: 599
+          example: 400
         code:
           type: integer
           format: int32
           description: >
-            An optional more specific code corresponding to the error (specific codes need to be
-            documented).
+            An optional and more specific code corresponding to the error (specific codes need to be
+            documented as part of the API operation). This code allows a given category of
+            errors (e.g. 501: Not Implemented) to be more specific as to why.
+        error:
+          type: string
+          description: The corresponding HTTP reason phrase.
+          example: Bad Request
+          minLength: 1
         message:
           type: string
-          description: Information about the error.
+          description: Specific information about the error.
           minLength: 1
+          example: Validation failed for object='systemInfo'.
         details:
           type: array
           items:
             type: string
           description: Optional detailed information about the error.
-        path:
-          type: string
-          description: The path for the REST request that generated this error.
-          example: /heartbeat

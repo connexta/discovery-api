@@ -22,18 +22,14 @@
     <parent>
         <groupId>com.connexta.discovery</groupId>
         <artifactId>discovery-api-rest-clients</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
 
     <name>Discovery JAX-RS CXF Client</name>
 
     <groupId>com.connexta.discovery</groupId>
     <artifactId>discovery-api-cxf-client</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-
-    <properties>
-        <cxf.version>3.3.1</cxf.version>
-    </properties>
+    <version>1.0.1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
