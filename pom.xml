@@ -89,8 +89,8 @@
         <jar.plugin.version>3.1.1</jar.plugin.version>
         <javadoc.plugin.version>3.1.0</javadoc.plugin.version>
         <maven-servicemix-depends.version>1.4.0</maven-servicemix-depends.version>
-        <!-- Forced to use the beta version as the latest 3.3.4 doesn't work properly with OpenAPI 3.0.2 -->
-        <openapi.generator.plugin.version>4.0.0-beta</openapi.generator.plugin.version>
+        <!-- Up rev from 4.0.0-beta to 4.0.2 fixing file path creation issues around '.' character -->
+        <openapi.generator.plugin.version>4.0.2</openapi.generator.plugin.version>
         <release.plugin.version>2.5.3</release.plugin.version>
         <resources.plugin.version>3.1.0</resources.plugin.version>
         <source.plugin.version>3.0.1</source.plugin.version>
