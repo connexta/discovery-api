@@ -226,7 +226,6 @@ components:
       required: true
       schema:
         type: string
-        format: uri
       example: ${rest.server.url}/xyz
 
   schemas:
@@ -310,7 +309,6 @@ components:
           example: 4.6.9
         url:
           type: string
-          format: uri
           description: >
             An externally accessible url where the remote system is hosting REST services that can
             can be reached. For DDF-based systems, this would be the base url for the CSW and
